@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+<script       
+src="https://static.line-scdn.net/liff/edge/2/sdk.js">
+</script>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font: 16px Arial;  
+}
+/*the container must be positioned relative:*/
+.autocomplete {
+  position: relative;
+  display: inline-block;
+}
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 90%;
+}
+
+input[type=submit] {
+  background-color: DodgerBlue;
+  color: #fff;
+  cursor: pointer;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+}
+
+/*when hovering an item:*/
+.autocomplete-items div:hover {
+  background-color: #e9e9e9; 
+}
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+  background-color: DodgerBlue !important; 
+  color: #ffffff; 
+}
+</style>
+</head>
+<body>
+<center>
+<h2>ตรวจสอบสถานะคำสั่งซื้อ</h2>
+<img id="pictureUrl" src="https://www.img.in.th/images/e7fe53fca4ec6bf9b833daada92bee85.png">
+
+<!--Make sure the form has the autocomplete function switched off:-->
+<form autocomplete="off" action="/action_page.php">
+  <div class="autocomplete" style="width:300px;">
+    <input id="myInput" type="text" name="myCountry" placeholder="Search for names..">
+  </div>
+  <input type="submit">
+</form>
+<script>
+function autocomplete(inp, arr) {
+  /*the autocomplete function takes two arguments,
+  the text field element and an array of possible autocompleted values:*/
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+  inp.addEventListener("input", function(e) {
+      var a, b, i, val = this.value;
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array...*/
+      for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+        /*If the arrow DOWN key is pressed,
+        increase the currentFocus variable:*/
+        currentFocus++;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 38) { //up
+        /*If the arrow UP key is pressed,
+        decrease the currentFocus variable:*/
+        currentFocus--;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 13) {
+        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        e.preventDefault();
+        if (currentFocus > -1) {
+          /*and simulate a click on the "active" item:*/
+          if (x) x[currentFocus].click();
+        }
+      }
+  });
+  function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
+  }
+  function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
+    }
+  }
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
+      closeAllLists(e.target);
+  });
+}
+
+/*An array containing all the country names in the world:*/
+var countries = ["ทวีโชคออโต้พาร์ท","คลองขุดอะไหล่ยนต์ จำกัด","รุ่งโรจน์อะไหล่ 1987 จำกัด","กิจธนยนต์ จำกัด","เค.อาร์.ออโตโมทีฟ จำกัด","ฟอร์ชเวย์ (ประเทศไทย) จำกัด สาขาแยกวัดเสด็จ","วัฒนาออโต้คาร์","อุดมมอเตอร์","ระยองออโต้เซอร์วิส","ออโต้โปรดักส์ เซ็นเตอร์","สตาร์อะไหล่ยนต์","ชัยมงคล (ป.มงคล)","สิริกลการ (บางบัวทอง)","เอ็น.ซี. เซ็นเตอร์พาร์ท จำกัด","ชัยเจริญยนต์","ชาญกลการ","เอ.พี.ซี.ออโต้ จำกัด","บัส ทรัค อะไหล่","สวนหลวงอะไหล่ยนต์ 2019","ว.ศิริกาญออโตพาร์ท จำกัด","รุ่งเรืองอะไหล่ยนต์","กิจรุ่งเรืองออโต้พาร์ท","ลาภัชชัยยนต์  จำกัด","ดีเลิศอะไหล่","พงศ์กฤษณ์กลการ","ฮั่งเซ้ง ออโตพาร์ท จำกัด","ต่อพงศ์ อะไหล่ยนต์","เจ.เค. อะไหล่ยนต์","สหพานิช 1","เงินงามอะไหล่ยนต์ จำกัด","เสถียนการยาง","ทีซีเอส ออโต้คาร์เซอร์วิส จำกัด","ไทยรุ่งเรืองอะไหล่","ทองอะไหล่ยนต์","จิวมุ่ยเส็ง","ประกอบอะไหล่ยนต์","ทรัพย์เจริญเบรกยนต์(เพทาย ทรัพย์สามารถ)","สยามอะไหล่ 2008","A O เซอร์วิส","เจริญใจเบรคยนต์","โง้วเฮงหลี","ศรีสยามอะไหล่ 2009 จำกัด","พลวิวัฒน์อะไหล่ยนต์","อิทธิพรกลการ จำกัด","ธน","ยนต์สยาม","ศรีเสม็ดอะไหล่ยนต์","ศีขรภูมิอะไหล่ยนต์","โอเคอะไหล่","ค็อกพิท คาร์โปรเทคเตอร์ จำกัด","อาหลั่ยยนต์","บั่นซินหิ้น","เพียรทอง รุ่งเรือง ออโต้พาร์ท จำกัด","บุญเลิศกลการ","แก้วสมศรี พลัส จำกัด","อ้วนการยางร้อยเอ็ด","สกลผ้าเบรก","อู่ เสริมยนต์","ทวีผลกลการ","อ.ยางยนต์","รวมอะไหล่","เฮงพรไพศาล","โอชา คลองใหญ่","ป.กลการ","ร้าน อภิสิทธิ์ยนต์","แว่น ออโต้พาร์ท จำกัด","วรอินเตอร์เทรด จำกัด","ช.ถาวรผ้าเบรก","เพชรเกษมผ้าเบรก","รุ่งมีชัยกลการ จำกัด","เอส. ที. กลการ","ร้าน อ.อะไหล่ยนต์","หจก.ดาวชุมแพศูนย์ล้อ","ฮะฮวด ออโต้พาร์ท จำกัด","เอส.ดี.อะไหล่ยนต์","จิบตงอะไหล่ยนต์","เอส.วี.คาร์เซอร์วิส","ปรีชาอะไหล่","เจ. เอช. เอช. เทรดดิ้ง","อู่ ชัยเจริญรวมยนต์","หจก. โชคชัยอะไหล่","ร้าน วี.เค. อะไหล่ยนต์","สหแสงอะไหล่ยนต์","พี.วี.อะไหล่","บางบอนอะไหล่","ยนต์สัมพันธ์","ชลิตยางยนต์","ฐิติมลการค้า","ทวีพลอะหลั่ย","สงวนยางยนต์ชุมพร จำกัด","ทรัพย์สินยนต์","วาสนาอะไหล่ยนต์","เจริญรุ่งเรืองอะไหล่ยนต์","หจก.บางไผ่อะไหล่","อู่ ออดการช่าง","เวียงแก่นเจริญยนต์"
+
+
+
+];
+
+/*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+autocomplete(document.getElementById("myInput"), countries);
+</script>
